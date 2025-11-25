@@ -1,5 +1,5 @@
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
+from pydantic import BaseModel, EmailStr, Field, model_validator
+from typing import Optional, Literal
 from datetime import datetime
 
 
@@ -13,6 +13,35 @@ class UserRead(BaseModel):
     id: int
     username: str
     email: EmailStr
+    created_at: Optional[datetime]
+
+    class Config:
+        orm_mode = True
+
+
+ALLOWED_TYPES = ('Add', 'Sub', 'Multiply', 'Divide')
+
+
+class CalculationCreate(BaseModel):
+    a: float
+    b: float
+    type: Literal['Add', 'Sub', 'Multiply', 'Divide']
+
+    @model_validator(mode='after')
+    def check_division(cls, values):
+        # values is the model instance in pydantic v2; perform divide-by-zero check
+        if values.type == 'Divide' and values.b == 0:
+            raise ValueError('Division by zero is not allowed')
+        return values
+
+
+class CalculationRead(BaseModel):
+    id: int
+    a: float
+    b: float
+    type: str
+    result: Optional[float]
+    user_id: Optional[int]
     created_at: Optional[datetime]
 
     class Config:

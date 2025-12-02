@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.orm import Session
 from app import models, schemas, factory
 from app.database import get_db
-from app.security import get_user_id_from_token
+from app.security import verify_access_token
 
 router = APIRouter(prefix="/calculations", tags=["calculations"])
 
@@ -16,7 +16,7 @@ def _get_token_user_id(authorization: str | None) -> int | None:
     if len(parts) != 2:
         return None
     token = parts[1]
-    return get_user_id_from_token(token)
+    return verify_access_token(token)
 
 
 @router.post("/", response_model=schemas.CalculationRead, status_code=status.HTTP_201_CREATED)

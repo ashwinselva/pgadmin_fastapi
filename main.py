@@ -21,6 +21,13 @@ from app.routes.calculations import router as calculations_router
 app.include_router(users_router)
 app.include_router(calculations_router)
 
+
+@app.on_event("startup")
+async def startup_event():
+    # Ensure DB tables exist when the app starts (useful for E2E tests)
+    from app.database import Base, engine
+    Base.metadata.create_all(bind=engine)
+
 # Setup templates directory
 templates = Jinja2Templates(directory="templates")
 
@@ -68,6 +75,16 @@ async def read_root(request: Request):
     Serve the index.html template.
     """
     return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.get("/register")
+async def register_page(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
+
+
+@app.get("/login")
+async def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
 
 @app.post("/add", response_model=OperationResponse, responses={400: {"model": ErrorResponse}})
 async def add_route(operation: OperationRequest):

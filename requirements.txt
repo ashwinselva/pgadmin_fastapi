@@ -39,5 +39,6 @@ urllib3==2.2.3
 uvicorn==0.32.0
 
 # Added for SQLAlchemy models and password hashing
-SQLAlchemy==2.0.22
+SQLAlchemy==2.0.44
 passlib[bcrypt]==1.7.4
+PyJWT==2.8.0

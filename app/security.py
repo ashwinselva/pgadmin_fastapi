@@ -1,36 +1,49 @@
-from passlib.context import CryptContext
-import secrets
 from typing import Optional
+import os
+import jwt
+from datetime import datetime, timedelta
+import bcrypt
 
-# Simple in-memory session store: token -> user_id
-# This is intentionally simple for the exercise. For production use a proper token system.
-_sessions: dict[str, int] = {}
-
-# Use bcrypt scheme via passlib
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# JWT settings
+JWT_SECRET = os.getenv("JWT_SECRET", "change-this-secret-in-prod")
+JWT_ALGORITHM = "HS256"
+JWT_EXP_MINUTES = int(os.getenv("JWT_EXP_MINUTES", "60"))
 
 
 def hash_password(plain_password: str) -> str:
-    """Hash a plain-text password."""
-    return pwd_context.hash(plain_password)
+    """Hash a plain-text password using bcrypt."""
+    # Convert to bytes and hash
+    password_bytes = plain_password.encode('utf-8')
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password_bytes, salt)
+    return hashed.decode('utf-8')
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a plain-text password against the hashed value."""
-    return pwd_context.verify(plain_password, hashed_password)
+    password_bytes = plain_password.encode('utf-8')
+    hashed_bytes = hashed_password.encode('utf-8')
+    return bcrypt.checkpw(password_bytes, hashed_bytes)
 
 
-def create_session(user_id: int) -> str:
-    """Create a simple token for a user and store it in the in-memory session store."""
-    token = secrets.token_urlsafe(32)
-    _sessions[token] = user_id
+def create_access_token(user_id: int, expires_delta: Optional[timedelta] = None) -> str:
+    now = datetime.utcnow()
+    expire = now + (expires_delta or timedelta(minutes=JWT_EXP_MINUTES))
+    payload = {"sub": str(user_id), "exp": expire, "iat": now}
+    token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
     return token
 
 
-def get_user_id_from_token(token: str) -> Optional[int]:
-    return _sessions.get(token)
+def verify_access_token(token: str) -> Optional[int]:
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        user_id = int(payload.get("sub"))
+        return user_id
+    except Exception:
+        return None
 
 
-def revoke_session(token: str) -> None:
-    _sessions.pop(token, None)
+def revoke_access_token(token: str) -> None:
+    # Stateless JWTs can't be revoked without a store. Keep a no-op here for API compatibility.
+    return None
 

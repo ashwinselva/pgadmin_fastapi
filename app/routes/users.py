@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app import models, schemas
 from app.database import get_db
-from app.security import hash_password, verify_password, create_session
+from app.security import hash_password, verify_password, create_access_token
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -13,7 +13,7 @@ class LoginRequest(BaseModel):
     password: str
 
 
-@router.post("/register", response_model=schemas.UserRead)
+@router.post("/register")
 def register(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
     # check existing username/email
     existing = db.query(models.User).filter(
@@ -27,7 +27,8 @@ def register(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
     db.refresh(user)
-    return user
+    token = create_access_token(user.id)
+    return {"access_token": token, "token_type": "bearer"}
 
 
 @router.post("/login")
@@ -36,5 +37,5 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
-    token = create_session(user.id)
+    token = create_access_token(user.id)
     return {"access_token": token, "token_type": "bearer"}

@@ -10,3 +10,12 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, futu
 
 Base = declarative_base()
 
+
+def get_db():
+	"""FastAPI dependency that yields a SQLAlchemy session."""
+	db = SessionLocal()
+	try:
+		yield db
+	finally:
+		db.close()
+

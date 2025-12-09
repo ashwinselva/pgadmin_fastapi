@@ -42,3 +42,6 @@ uvicorn==0.32.0
 SQLAlchemy==2.0.44
 passlib[bcrypt]==1.7.4
 PyJWT==2.8.0
+
+# Email validation required by pydantic's EmailStr
+email-validator==2.3.0

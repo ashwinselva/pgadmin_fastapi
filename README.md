@@ -188,6 +188,12 @@ in the repository and that your Markdown renderer supports local images.
 
   ![pgAdmin — Query Results](screenshots/c.png)
 
+- `screenshots/d.png` — End-to-end test run / coverage output screenshot from the
+  CI run (shows test summary and coverage report). Useful to verify the CI
+  pipeline and test results.
+
+  ![CI — Tests & Coverage](screenshots/d.png)
+
 ---
 
 ## Useful commands

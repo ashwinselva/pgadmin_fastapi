@@ -19,6 +19,16 @@ class UserRead(BaseModel):
         orm_mode = True
 
 
+class UserUpdate(BaseModel):
+    username: Optional[str] = Field(None, min_length=3, max_length=50)
+    email: Optional[EmailStr] = None
+
+
+class PasswordChange(BaseModel):
+    old_password: str = Field(..., min_length=6)
+    new_password: str = Field(..., min_length=6)
+
+
 ALLOWED_TYPES = ('Add', 'Sub', 'Multiply', 'Divide')
 
 

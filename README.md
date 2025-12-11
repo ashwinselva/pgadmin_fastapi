@@ -196,6 +196,25 @@ in the repository and that your Markdown renderer supports local images.
 
 ---
 
+## Profile Page (New Feature)
+
+This project includes a **User Profile & Password Change** feature.
+
+- Visit `/profile` after logging in to view and update your username/email.
+- Use the **Change Password** form to set a new password; after a successful
+  change you'll be redirected to the login page and must sign in with the new
+  password.
+
+Automated tests were added for this feature (unit, integration, and E2E). To run
+them in your virtual environment use:
+
+```bash
+source .venv/bin/activate
+pytest -q
+```
+
+---
+
 ## Useful commands
 
 ```bash

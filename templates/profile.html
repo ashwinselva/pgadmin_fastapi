@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Profile — FastAPI Calculator</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: linear-gradient(135deg,#667eea,#764ba2); color:#fff; }
+    .card { max-width:700px; margin:4rem auto; background:rgba(255,255,255,0.06); padding:24px; border-radius:8px; }
+    label { display:block; margin-top:12px; font-weight:600; }
+    input { width:100%; padding:8px; border-radius:4px; border:1px solid rgba(255,255,255,0.12); background:transparent; color:#fff }
+    button { margin-top:12px; padding:10px 14px; border-radius:6px; border:none; background:#ffd166; color:#2b2b2b; font-weight:700; cursor:pointer }
+    .hint { font-size:0.9rem; opacity:0.9 }
+    .danger { background:#ff7b7b }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Profile</h1>
+    <p class="hint">Update your username or email below.</p>
+    <form id="profileForm">
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text" />
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" />
+      <button type="submit">Save Profile</button>
+      <div id="profileMsg"></div>
+    </form>
+
+    <hr style="margin:18px 0; border-color: rgba(255,255,255,0.08)" />
+
+    <h2>Change Password</h2>
+    <form id="passwordForm">
+      <label for="old_password">Current Password</label>
+      <input id="old_password" name="old_password" type="password" />
+      <label for="new_password">New Password</label>
+      <input id="new_password" name="new_password" type="password" />
+      <button id="changeBtn" type="submit" class="danger">Change Password</button>
+      <div id="passwordMsg"></div>
+    </form>
+  </div>
+
+<script>
+async function getToken() {
+  return localStorage.getItem('access_token') || null;
+}
+
+async function loadProfile(){
+  const token = await getToken();
+  if(!token){ window.location.href = '/login'; return }
+  const res = await fetch('/users/me', { headers: { 'Authorization': 'Bearer '+token } });
+  if(res.status === 200){
+    const data = await res.json();
+    document.getElementById('username').value = data.username || '';
+    document.getElementById('email').value = data.email || '';
+  } else {
+    document.getElementById('profileMsg').innerText = 'Unable to load profile.'
+  }
+}
+
+document.getElementById('profileForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const token = await getToken();
+  const payload = { username: document.getElementById('username').value, email: document.getElementById('email').value };
+  const res = await fetch('/users/me', { method: 'PUT', headers: { 'Content-Type':'application/json', 'Authorization': 'Bearer '+token }, body: JSON.stringify(payload) });
+  const msg = document.getElementById('profileMsg');
+  if(res.ok){ msg.innerText = 'Profile updated.' } else { const j = await res.json(); msg.innerText = j.error || j.detail || 'Error' }
+});
+
+document.getElementById('passwordForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const token = await getToken();
+  const payload = { old_password: document.getElementById('old_password').value, new_password: document.getElementById('new_password').value };
+  const res = await fetch('/users/change-password', { method: 'POST', headers: { 'Content-Type':'application/json', 'Authorization': 'Bearer '+token }, body: JSON.stringify(payload) });
+  const msg = document.getElementById('passwordMsg');
+  if(res.ok){ msg.innerText = 'Password changed. Please log in again.'; localStorage.removeItem('access_token'); setTimeout(()=>window.location.href='/login',1200) } else { const j = await res.json(); msg.innerText = j.error || j.detail || 'Error' }
+});
+
+loadProfile();
+</script>
+</body>
+</html>

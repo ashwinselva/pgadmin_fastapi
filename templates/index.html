@@ -41,6 +41,37 @@
             display: flex;
             gap: 1rem;
         }
+        .profile-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 24px;
+            background: #f1f5ff;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.15s, background 0.15s;
+            border: 1px solid rgba(102,126,234,0.12);
+        }
+        .profile-icon:hover {
+            transform: translateY(-2px);
+            background: #e6eefc;
+        }
+        .profile-icon .avatar {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            color: #667eea;
+            font-size: 14px;
+            border: 1px solid rgba(102,126,234,0.08);
+        }
+        .profile-name { font-weight: 600; color: #334155; font-size: 14px; }
         .auth-links a, .logout-btn {
             color: #667eea;
             text-decoration: none;
@@ -82,19 +113,38 @@
             display: flex;
             gap: 10px;
             margin-bottom: 25px;
+            align-items: center;
         }
+        .input-wrap { flex: 1; display: flex; align-items: center; }
         input {
-            flex: 1;
-            padding: 14px;
+            width: 100%;
+            padding: 12px 14px;
+            height: 100%;
+            line-height: normal;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 15px;
             transition: all 0.3s;
+            box-sizing: border-box;
+            display: block;
         }
+        input::placeholder { line-height: normal; }
         input:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+        }
+        /* Remove native number input spinner offset and ensure consistent alignment */
+        input[type=number] {
+            -webkit-appearance: none;
+            -moz-appearance: textfield;
+            appearance: none;
+            padding-right: 14px;
+        }
+        input[type=number]::-webkit-outer-spin-button,
+        input[type=number]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
         .button-group {
             display: grid;
@@ -257,6 +307,16 @@
         <div class="auth-links">
             <a href="/register" id="registerLink">Register</a>
             <a href="/login" id="loginLink">Login</a>
+                <div style="position: relative; display: inline-block;">
+                    <a href="/profile" id="profileLink" class="profile-icon" title="Profile" style="display: none;">
+                        <span class="avatar">👤</span>
+                        <span id="profileName" class="profile-name">User</span>
+                    </a>
+                    <div id="profileDropdown" style="display:none; position: absolute; right: 0; top: 44px; background: white; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); overflow: hidden; min-width: 160px; z-index:2000;">
+                        <a id="viewProfile" href="/profile" style="display:block; padding:10px 12px; color:#333; text-decoration:none;">View profile</a>
+                        <button id="dropdownLogout" style="width:100%; text-align:left; padding:10px 12px; border:none; background:none; cursor:pointer;">Log out</button>
+                    </div>
+                </div>
             <button class="logout-btn" id="logoutBtn" style="display: none;">Logout</button>
         </div>
     </div>
@@ -271,8 +331,8 @@
         </div>
         
         <div class="input-group">
-            <input type="number" id="a" placeholder="First number" step="any">
-            <input type="number" id="b" placeholder="Second number" step="any">
+            <div class="input-wrap"><input type="number" id="a" placeholder="First number" step="any"></div>
+            <div class="input-wrap"><input type="number" id="b" placeholder="Second number" step="any"></div>
         </div>
         
         <div class="button-group">
@@ -303,21 +363,71 @@
         const registerLink = document.getElementById('registerLink');
         const loginLink = document.getElementById('loginLink');
         const logoutBtn = document.getElementById('logoutBtn');
+        const profileLink = document.getElementById('profileLink');
+        const profileNameEl = document.getElementById('profileName');
+        const profileDropdown = document.getElementById('profileDropdown');
+        const dropdownLogout = document.getElementById('dropdownLogout');
+
+        // hide profile by default; only show if /users/me returns success
+        profileLink.style.display = 'none';
 
         if (token) {
-            registerLink.style.display = 'none';
-            loginLink.style.display = 'none';
-            logoutBtn.style.display = 'inline-block';
-            loadCalculations(); // Load saved calculations on page load
+            // validate token and load user info
+            fetch('/users/me', { headers: { 'Authorization': `Bearer ${token}` } })
+                .then(r => {
+                    if (!r.ok) throw new Error('auth-failed');
+                    return r.json();
+                })
+                .then(user => {
+                    registerLink.style.display = 'none';
+                    loginLink.style.display = 'none';
+                    logoutBtn.style.display = 'inline-block';
+                    profileLink.style.display = 'inline-flex';
+                    if (user && user.username) {
+                        const avatarEl = document.querySelector('#profileLink .avatar');
+                        profileNameEl.innerText = user.username;
+                        avatarEl.innerText = user.username.charAt(0).toUpperCase();
+                        profileLink.title = user.username;
+                    }
+                    loadCalculations(); // Load saved calculations on page load
+                })
+                .catch(() => {
+                    // invalid token — remove and show auth links
+                    localStorage.removeItem('access_token');
+                    registerLink.style.display = 'inline-block';
+                    loginLink.style.display = 'inline-block';
+                    logoutBtn.style.display = 'none';
+                    profileLink.style.display = 'none';
+                });
         } else {
             registerLink.style.display = 'inline-block';
             loginLink.style.display = 'inline-block';
             logoutBtn.style.display = 'none';
+            profileLink.style.display = 'none';
         }
 
         logoutBtn.addEventListener('click', () => {
             localStorage.removeItem('access_token');
             window.location.reload();
+        });
+
+        // toggle dropdown
+        profileLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            profileDropdown.style.display = profileDropdown.style.display === 'block' ? 'none' : 'block';
+        });
+
+        // logout from dropdown
+        dropdownLogout.addEventListener('click', () => {
+            localStorage.removeItem('access_token');
+            window.location.reload();
+        });
+
+        // close dropdown on outside click
+        document.addEventListener('click', (e) => {
+            if (!profileDropdown.contains(e.target) && e.target !== profileLink) {
+                profileDropdown.style.display = 'none';
+            }
         });
 
         const resultElement = document.getElementById('result');

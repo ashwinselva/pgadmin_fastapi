@@ -8,25 +8,27 @@ from fastapi.exceptions import RequestValidationError
 from app.operations import add, subtract, multiply, divide  # Ensure correct import path
 import uvicorn
 import logging
+from contextlib import asynccontextmanager
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Ensure DB tables exist when the app starts (useful for E2E tests)
+    from app.database import Base, engine
+    Base.metadata.create_all(bind=engine)
+    yield
+    # Shutdown: cleanup code can go here if needed
+
+app = FastAPI(lifespan=lifespan)
 
 # include routers
 from app.routes.users import router as users_router
 from app.routes.calculations import router as calculations_router
 app.include_router(users_router)
 app.include_router(calculations_router)
-
-
-@app.on_event("startup")
-async def startup_event():
-    # Ensure DB tables exist when the app starts (useful for E2E tests)
-    from app.database import Base, engine
-    Base.metadata.create_all(bind=engine)
 
 # Setup templates directory
 templates = Jinja2Templates(directory="templates")

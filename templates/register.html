@@ -113,6 +113,25 @@
   </style>
 </head>
 <body>
+  <div class="navbar" style="position:fixed;top:0;left:0;right:0;background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;z-index:1000;">
+    <h2 style="color:#667eea;font-size:20px;margin:0;">🧮 Calculator Pro</h2>
+    <div style="display:flex;gap:1rem;align-items:center;">
+      <a href="/register" id="registerLink">Register</a>
+      <a href="/login" id="loginLink">Login</a>
+      <div style="position:relative;display:inline-block;">
+        <a href="/profile" id="profileLink" class="profile-icon" title="Profile" style="display:none;margin-left:6px;">
+          <span class="avatar">👤</span>
+          <span id="profileName" class="profile-name">User</span>
+        </a>
+        <div id="profileDropdown" style="display:none;position:absolute;right:0;top:44px;background:white;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.12);overflow:hidden;min-width:160px;z-index:2000;">
+          <a id="viewProfile" href="/profile" style="display:block;padding:10px 12px;color:#333;text-decoration:none;">View profile</a>
+          <button id="dropdownLogout" style="width:100%;text-align:left;padding:10px 12px;border:none;background:none;cursor:pointer;">Log out</button>
+        </div>
+      </div>
+      <button class="logout-btn" id="logoutBtn" style="display: none;">Logout</button>
+    </div>
+  </div>
+  <div style="height:72px;"></div>
   <div class="container">
     <h1>Create Account</h1>
     <form id="registerForm">
@@ -141,6 +160,57 @@
   </div>
 
   <script>
+    // Navbar behavior: show/hide links and profile initial
+    (function(){
+      const token = localStorage.getItem('access_token');
+      const registerLink = document.getElementById('registerLink');
+      const loginLink = document.getElementById('loginLink');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const profileLink = document.getElementById('profileLink');
+      const profileNameEl = document.getElementById('profileName');
+      const profileDropdown = document.getElementById('profileDropdown');
+      const dropdownLogout = document.getElementById('dropdownLogout');
+
+      // hide profile link by default
+      profileLink.style.display = 'none';
+
+      if (token) {
+        fetch('/users/me', { headers: { 'Authorization': `Bearer ${token}` } })
+          .then(r => {
+            if (!r.ok) throw new Error('auth-failed');
+            return r.json();
+          })
+          .then(user => {
+            registerLink.style.display = 'none';
+            loginLink.style.display = 'none';
+            logoutBtn.style.display = 'inline-block';
+            profileLink.style.display = 'inline-flex';
+            if (user && user.username) {
+              const avatarEl = document.querySelector('#profileLink .avatar');
+              profileNameEl.innerText = user.username;
+              avatarEl.innerText = user.username.charAt(0).toUpperCase();
+            }
+          })
+          .catch(()=>{
+            localStorage.removeItem('access_token');
+            registerLink.style.display = 'inline-block';
+            loginLink.style.display = 'inline-block';
+            logoutBtn.style.display = 'none';
+            profileLink.style.display = 'none';
+          });
+      } else {
+        registerLink.style.display = 'inline-block';
+        loginLink.style.display = 'inline-block';
+        logoutBtn.style.display = 'none';
+        profileLink.style.display = 'none';
+      }
+
+      logoutBtn && logoutBtn.addEventListener('click', ()=>{ localStorage.removeItem('access_token'); window.location.reload(); });
+      profileLink && profileLink.addEventListener('click', (e)=>{ e.preventDefault(); profileDropdown.style.display = profileDropdown.style.display === 'block' ? 'none' : 'block'; });
+      dropdownLogout && dropdownLogout.addEventListener('click', ()=>{ localStorage.removeItem('access_token'); window.location.reload(); });
+      document.addEventListener('click', (e)=>{ if (!profileDropdown.contains(e.target) && e.target !== profileLink) profileDropdown.style.display='none'; });
+    })();
+
     const form = document.getElementById('registerForm');
     const msg = document.getElementById('message');
 

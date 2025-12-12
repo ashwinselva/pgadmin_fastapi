@@ -87,7 +87,7 @@ jobs:
         if: success()
         run: |
           docker compose cp web:/tmp/htmlcov ./htmlcov-docker
-          docker compose cp web:/app/.coverage ./.coverage-docker
+          docker compose cp web:/tmp/.coverage ./.coverage-docker
 
       - name: Upload Docker coverage report
         if: success()

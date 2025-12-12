@@ -9,6 +9,41 @@ connect pgAdmin to the database.
 
 ---
 
+## Screenshots (embedded)
+
+Below are screenshots from the `screenshots/` folder with short explanations. If an
+image doesn't display in your viewer, make sure the `screenshots/` files are present
+in the repository and that your Markdown renderer supports local images.
+
+- `screenshots/a.png` — Homepage showing the app title and the calculator UI with the
+  two number inputs and operation buttons. This demonstrates the default page served
+  at `/` (used by e2e tests to exercise the UI).
+
+  ![Homepage — Calculator UI](screenshots/a.png)
+
+- `screenshots/b.png` — pgAdmin server creation dialog prefilled with connection
+  information (Host: `db`, Port: `5432`, User: `postgres`). Use this when connecting
+  pgAdmin (running inside Docker Compose) to the Postgres service.
+
+  ![pgAdmin — Add Server](screenshots/b.png)
+
+- `screenshots/c.png` — Example query/results view inside pgAdmin showing the
+  `fastapi_db` database and a sample query result. Useful to confirm that the DB
+  is reachable and the app has created data as expected.
+
+  ![pgAdmin — Query Results](screenshots/c.png)
+
+- `screenshots/d.png` — End-to-end test run / coverage output screenshot from the
+  CI run (shows test summary and coverage report). Useful to verify the CI
+  pipeline and test results.
+
+  ![CI — Tests & Coverage](screenshots/d.png)
+
+![](screenshots/e.png)
+![](screenshots/f.png)
+
+---
+
 ## Requirements
 
 - macOS / Linux / Windows with WSL
@@ -161,38 +196,6 @@ pytest tests/e2e -q
 - pgAdmin cannot resolve `db`:
   - Ensure both `pgadmin` and `db` containers are running in the same Compose
     network: `docker compose ps` and `docker network inspect module9_is601_app-network`.
-
----
-
-## Screenshots (embedded)
-
-Below are screenshots from the `screenshots/` folder with short explanations. If an
-image doesn't display in your viewer, make sure the `screenshots/` files are present
-in the repository and that your Markdown renderer supports local images.
-
-- `screenshots/a.png` — Homepage showing the app title and the calculator UI with the
-  two number inputs and operation buttons. This demonstrates the default page served
-  at `/` (used by e2e tests to exercise the UI).
-
-  ![Homepage — Calculator UI](screenshots/a.png)
-
-- `screenshots/b.png` — pgAdmin server creation dialog prefilled with connection
-  information (Host: `db`, Port: `5432`, User: `postgres`). Use this when connecting
-  pgAdmin (running inside Docker Compose) to the Postgres service.
-
-  ![pgAdmin — Add Server](screenshots/b.png)
-
-- `screenshots/c.png` — Example query/results view inside pgAdmin showing the
-  `fastapi_db` database and a sample query result. Useful to confirm that the DB
-  is reachable and the app has created data as expected.
-
-  ![pgAdmin — Query Results](screenshots/c.png)
-
-- `screenshots/d.png` — End-to-end test run / coverage output screenshot from the
-  CI run (shows test summary and coverage report). Useful to verify the CI
-  pipeline and test results.
-
-  ![CI — Tests & Coverage](screenshots/d.png)
 
 ---
 

@@ -41,6 +41,8 @@ in the repository and that your Markdown renderer supports local images.
 
 ![](screenshots/e.png)
 ![](screenshots/f.png)
+![](screenshots/g.png)
+![](screenshots/h.png)
 
 ---
 

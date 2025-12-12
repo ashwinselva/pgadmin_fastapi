@@ -71,21 +71,20 @@ jobs:
 
       - name: Run tests in Docker
         run: |
-          docker compose exec -T web pytest --cov=app --cov-report=term-missing --cov-report=html --ignore=tests/e2e
+          docker compose exec -T web pytest tests/unit/ tests/integration/ --cov=app --cov-report=term-missing --cov-report=html -v
 
       - name: Copy coverage report from Docker
+        if: always()
         run: |
-          docker compose cp web:/app/htmlcov ./htmlcov-docker
-          docker compose cp web:/app/.coverage ./.coverage-docker
+          docker compose cp web:/app/htmlcov ./htmlcov-docker || true
+          docker compose cp web:/app/.coverage ./.coverage-docker || true
 
       - name: Upload Docker coverage report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: docker-coverage-report
           path: htmlcov-docker/
-
-      - name: Show coverage summary
-        run: docker compose exec -T web pytest --cov=app --cov-report=term --ignore=tests/e2e -q
 
       - name: Stop Docker containers
         if: always()

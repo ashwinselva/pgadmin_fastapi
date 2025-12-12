@@ -70,7 +70,9 @@ jobs:
           docker compose ps
 
       - name: Fix volume permissions
-        run: docker compose exec -T web chown -R appuser:appgroup /app
+        run: |
+          docker compose exec -T web bash -c 'chown appuser:appgroup /app/.coverage* || true'
+          docker compose exec -T web bash -c 'chown appuser:appgroup /app/test.db || true'
 
       - name: Run tests in Docker
         run: |

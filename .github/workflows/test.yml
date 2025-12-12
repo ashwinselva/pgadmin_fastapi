@@ -76,7 +76,7 @@ jobs:
 
       - name: Run tests in Docker
         run: |
-          docker compose exec -T web env COVERAGE_FILE=/tmp/.coverage pytest tests/unit/ tests/integration/ --cov=app --cov-append --cov-report=term-missing --cov-report=html:/tmp/htmlcov -v
+          docker compose exec -T web env COVERAGE_FILE=/tmp/.coverage DATABASE_URL=sqlite:////tmp/test.db pytest tests/unit/ tests/integration/ --cov=app --cov-append --cov-report=term-missing --cov-report=html:/tmp/htmlcov -v
 
       - name: Verify coverage files exist
         run: |

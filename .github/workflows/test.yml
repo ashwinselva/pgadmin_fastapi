@@ -73,14 +73,19 @@ jobs:
         run: |
           docker compose exec -T web pytest tests/unit/ tests/integration/ --cov=app --cov-report=term-missing --cov-report=html -v
 
-      - name: Copy coverage report from Docker
-        if: always()
+      - name: Verify coverage files exist
         run: |
-          docker compose cp web:/app/htmlcov ./htmlcov-docker || true
-          docker compose cp web:/app/.coverage ./.coverage-docker || true
+          docker compose exec -T web ls -la /app/htmlcov/ || echo "htmlcov directory not found"
+          docker compose exec -T web ls -la /app/.coverage || echo ".coverage file not found"
+
+      - name: Copy coverage report from Docker
+        if: success()
+        run: |
+          docker compose cp web:/app/htmlcov ./htmlcov-docker
+          docker compose cp web:/app/.coverage ./.coverage-docker
 
       - name: Upload Docker coverage report
-        if: always()
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: docker-coverage-report

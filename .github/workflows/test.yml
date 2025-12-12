@@ -38,6 +38,55 @@ jobs:
       - name: Run tests
         run: |
           source venv/bin/activate
-          pytest tests/unit/ --cov=src --junitxml=test-results/junit.xml
+          pytest tests/unit/ --cov=app --junitxml=test-results/junit.xml
           pytest tests/integration/
           pytest tests/e2e/
+
+      - name: Run tests with coverage
+        run: |
+          source venv/bin/activate
+          pytest --cov=app --cov-report=term-missing --cov-report=html
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: htmlcov/
+
+  docker-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build Docker image
+        run: docker compose build
+
+      - name: Start Docker containers
+        run: docker compose up -d
+
+      - name: Wait for container to be ready
+        run: |
+          sleep 5
+          docker compose ps
+
+      - name: Run tests in Docker
+        run: |
+          docker compose exec -T web pytest --cov=app --cov-report=term-missing --cov-report=html --ignore=tests/e2e
+
+      - name: Copy coverage report from Docker
+        run: |
+          docker compose cp web:/app/htmlcov ./htmlcov-docker
+          docker compose cp web:/app/.coverage ./.coverage-docker
+
+      - name: Upload Docker coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-coverage-report
+          path: htmlcov-docker/
+
+      - name: Show coverage summary
+        run: docker compose exec -T web pytest --cov=app --cov-report=term --ignore=tests/e2e -q
+
+      - name: Stop Docker containers
+        if: always()
+        run: docker compose down

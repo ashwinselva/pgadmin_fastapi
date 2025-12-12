@@ -1,4 +1,3 @@
-
 name: CI/CD
 
 on:
@@ -96,26 +95,6 @@ jobs:
         with:
           name: docker-coverage-report
           path: htmlcov-docker/
-
-  deploy:
-    needs: docker-test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    steps:
-      - uses: actions/checkout@v3
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build Docker image
-        run: docker build -t containop/calculator_app:${{ github.sha }} .
-      - name: Tag Docker image as latest
-        run: docker tag containop/calculator_app:${{ github.sha }} containop/calculator_app:latest
-      - name: Push Docker image (sha tag)
-        run: docker push containop/calculator_app:${{ github.sha }}
-      - name: Push Docker image (latest tag)
-        run: docker push containop/calculator_app:latest
 
       - name: Stop Docker containers
         if: always()

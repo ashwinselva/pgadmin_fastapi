@@ -7,6 +7,9 @@ includes PostgreSQL and pgAdmin for local development.
 This README covers the exact steps to run the project locally, run tests, and
 connect pgAdmin to the database.
 
+To access docker image from the hub:
+`docker pull containop/calculator_app:latest`
+
 ---
 
 ## Screenshots (embedded)
